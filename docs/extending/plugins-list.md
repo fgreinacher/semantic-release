@@ -84,6 +84,11 @@
   - `verifyRelease`: Checks and warns (does not error by default) if the version numbers found on maven central and within the Git project differ by quite a bit
   - `prepare`: Changes the version number in the `pom.xml` (or all `pom.xml` files in maven projects with multiple `pom.xml` files) and optionally creates a commit with this version number and pushes it to `master`
   - `publish`: Runs `mvn deploy` to deploy to maven central and optionally will update to next snapshot version and merge changes to development branch
+- [maven-semantic-release](https://github.com/terrestris/maven-semantic-release) (alternative version)
+  - `verifyConditions`: Verifies that the `mvn` command exists.
+  - `prepare`: Changes version number in `pom.xml` and optionally in all child modules.
+  - `publish`: Runs one of the mvn targets `deploy`, `package jib:build` or `deploy jib:build`.
+  - `success`: Optionally sets new snapshot version and commits it.
 - [semantic-release-ado](https://github.com/lluchmk/semantic-release-ado)
   - `prepare`: Stores the version number as an Azure DevOps pipeline variable available to downstream steps on the job
 - [gradle-semantic-release](https://github.com/KengoTODA/gradle-semantic-release-plugin)
@@ -107,7 +112,7 @@
   - `verifyConditions`: Verify the presence and the validity of the authentication and the assets option configuration.
   - `publish`: Publish a Gitea release, optionally uploading file assets.
   - `addChannel`: Update a Gitea release's pre-release field.
-- [@google/semantic-release-replace-plugin](https://github.com/google/semantic-release-replace-plugin)
+- [semantic-release-replace-plugin](https://github.com/jpoehnelt/semantic-release-replace-plugin)
   - `prepare`: Replace version strings in files using regex and glob.
 - [semantic-release-rubygem](https://github.com/Gusto/semantic-release-rubygem)
   - `verifyConditions`: Locate and validate a `.gemspec` file, locate and validate a `lib/**/version.rb` file, verify the presence of the `GEM_HOST_API_KEY` environment variable, and create a credentials file with the API key.
@@ -128,10 +133,9 @@
   - `verifyConditions`: Verify the environment variable `PYPI_TOKEN` and installation of build tools
   - `prepare`: Update the version in `setup.cfg` and create the distribution packages
   - `publish`: Publish the python package to a repository (default: pypi)
-- [semantic-release-helm](https://github.com/m1pl/semantic-release-helm)
-  - `verifyConditions`: Validate configuration and (if present) credentials
-  - `prepare`: Update version and appVersion in `Chart.yaml`
-  - `publish`: Publish the chart to a registry (if configured)
+- [@covage/semantic-release-poetry-plugin](https://github.com/covage/semantic-release-poetry-plugin)
+  - `verifyConditions`: Verify the presence and validity of `pyproject.toml` file.
+  - `prepare`: Update the version in `pyproject.toml`.
 - [semantic-release-codeartifact](https://github.com/ryansonshine/semantic-release-codeartifact)
   - `verifyConditions`: Validate configuration, get AWS CodeArtifact authentication and repository, validate `publishConfig` or `.npmrc` (if they exist), then pass the configuration to the associated plugins.
 - [semantic-release-telegram](https://github.com/pustovitDmytro/semantic-release-telegram)
@@ -158,6 +162,8 @@
   - `verifyConditions`: Verify plugin configuration and login to Helm registry
   - `prepare`: Package Helm chart to local folder
   - `publish`: Publish Helm chart to OCI registry
+- [semantic-release-mirror-version](https://github.com/GarthDB/semantic-release-mirror-version)
+  - `prepare`: Update the version number in any file that matches the defined [file glob](https://github.com/isaacs/node-glob).
 - [semantic-release-space](https://github.com/123FLO321/semantic-release-space)
   - `verifyConditions` Verifies that all required options are set.
   - `prepare` Creates a JetBrains Space Deployment Target if it does not yet exist.
@@ -174,6 +180,9 @@
 - [semantic-release-coralogix](https://github.com/adobe/semantic-release-coralogix)
   - `verifyConditions` Verified that required credentials are provided and API is accessible
   - `publish` add a release tag to Coralogix
+- [semantic-release-jira-notes](https://github.com/iamludal/semantic-release-jira-notes)
+  - `verifyConditions`: Validate the config options.
+  - `generateNotes`: Generate the release notes with links to JIRA issues.
 - [semantic-release-major-tag](https://github.com/doteric/semantic-release-major-tag)
   - `success` Create major version tag, for example `v1`.
 - [semantic-release-yarn](https://github.com/hongaar/semantic-release-yarn)
@@ -182,3 +191,20 @@
   - `prepare` Update the `package.json` version and create the package tarball.
   - `addChannel` Add a tag for the release.
   - `publish` Publish to the npm registry.
+- [semantic-release-pub](https://github.com/zeshuaro/semantic-release-pub)
+  - `verifyConditions`: Verify the presence of the `pub.dev` authentication and release configuration
+  - `prepare`: Update the `pubspec.yaml` version
+  - `publish`: Publish the package onto the `pub.dev` registry
+- [semantic-release-hackage](https://github.com/stackbuilders/semantic-release-hackage)
+  - `verifyConditions`: Verify the environment variable `HACKAGE_TOKEN`
+  - `prepare`: Update the version of .cabal file and create the distribution package (.tar)
+  - `publish`: Publish the release candidate to the specified repository in Hackage
+- [semantic-release-pull-request-analyzer](https://github.com/bobvanderlinden/semantic-release-pull-request-analyzer)
+  - `verifyConditions` Verify configuration options and existance of GitHub token.
+  - `analyzeCommits` Determine the type of release by analyzing merged GitHub pull requests and their labels.
+  - `generateNotes` Generates release notes using [GitHub release notes generator](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes).
+- [semantic-release-commits-lint](https://github.com/BondarenkoAlex/semantic-release-commits-lint)
+  - `analyzeCommits` Analyzing commit messages by [commitlint](https://github.com/conventional-changelog/commitlint).
+- [semantic-release-kaniko](https://github.com/brendangeck/semantic-release-kaniko)
+  - `verifyConditions`: Verify that all needed configuration is present and login to the Docker registry.
+  - `publish`: Build a container image using [Kaniko](https://github.com/GoogleContainerTools/kaniko) and (optionally) push it to a Docker registry.
