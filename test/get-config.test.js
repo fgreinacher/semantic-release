@@ -45,6 +45,7 @@ test("Default values, reading repositoryUrl from package.json", async (t) => {
   t.deepEqual(result.branches, [
     "+([0-9])?(.{+([0-9]),x}).x",
     "master",
+    "main",
     "next",
     "next-major",
     { name: "beta", prerelease: true },
@@ -66,6 +67,7 @@ test("Default values, reading repositoryUrl from repo if not set in package.json
   t.deepEqual(result.branches, [
     "+([0-9])?(.{+([0-9]),x}).x",
     "master",
+    "main",
     "next",
     "next-major",
     { name: "beta", prerelease: true },
@@ -88,6 +90,7 @@ test("Default values, reading repositoryUrl (http url) from package.json if not 
   t.deepEqual(result.branches, [
     "+([0-9])?(.{+([0-9]),x}).x",
     "master",
+    "main",
     "next",
     "next-major",
     { name: "beta", prerelease: true },
@@ -215,6 +218,27 @@ test.serial("Read options from .releaserc.cjs", async (t) => {
   t.deepEqual(result, { options, plugins: pluginsConfig });
 });
 
+test.serial("Read options from .releaserc.mjs", async (t) => {
+  // Create a git repository, set the current working directory at the root of the repo
+  const { cwd } = await gitRepo();
+  const options = {
+    analyzeCommits: { path: "analyzeCommits", param: "analyzeCommits_param" },
+    branches: ["test_branch"],
+    repositoryUrl: "https://host.null/owner/module.git",
+    tagFormat: `v\${version}`,
+    plugins: false,
+  };
+  // Create .releaserc.mjs in repository root
+  await writeFile(path.resolve(cwd, ".releaserc.mjs"), `export default ${JSON.stringify(options)}`);
+  // Verify the plugins module is called with the plugin options from .releaserc.mjs
+  td.when(plugins({ cwd, options }, {})).thenResolve(pluginsConfig);
+
+  const result = await t.context.getConfig({ cwd });
+
+  // Verify the options contains the plugin config from .releaserc.mjs
+  t.deepEqual(result, { options, plugins: pluginsConfig });
+});
+
 test.serial("Read options from release.config.js", async (t) => {
   // Create a git repository, set the current working directory at the root of the repo
   const { cwd } = await gitRepo();
@@ -254,6 +278,27 @@ test.serial("Read options from release.config.cjs", async (t) => {
   const result = await t.context.getConfig({ cwd });
 
   // Verify the options contains the plugin config from release.config.cjs
+  t.deepEqual(result, { options, plugins: pluginsConfig });
+});
+
+test.serial("Read options from release.config.mjs", async (t) => {
+  // Create a git repository, set the current working directory at the root of the repo
+  const { cwd } = await gitRepo();
+  const options = {
+    analyzeCommits: { path: "analyzeCommits", param: "analyzeCommits_param" },
+    branches: ["test_branch"],
+    repositoryUrl: "https://host.null/owner/module.git",
+    tagFormat: `v\${version}`,
+    plugins: false,
+  };
+  // Verify the plugins module is called with the plugin options from release.config.mjs
+  td.when(plugins({ cwd, options }, {})).thenResolve(pluginsConfig);
+  // Create release.config.mjs in repository root
+  await writeFile(path.resolve(cwd, "release.config.mjs"), `export default ${JSON.stringify(options)}`);
+
+  const result = await t.context.getConfig({ cwd });
+
+  // Verify the options contains the plugin config from release.config.mjs
   t.deepEqual(result, { options, plugins: pluginsConfig });
 });
 
@@ -379,6 +424,92 @@ test.serial('Read configuration from an array of paths in "extends"', async (t) 
         generateNotes2: "./shareable2.json",
         analyzeCommits1: "./shareable1.json",
         analyzeCommits2: "./shareable2.json",
+      }
+    )
+  ).thenResolve(pluginsConfig);
+
+  const result = await t.context.getConfig({ cwd });
+
+  // Verify the options contains the plugin config from shareable1.json and shareable2.json
+  t.deepEqual(result, { options: expectedOptions, plugins: pluginsConfig });
+});
+
+test.serial('Read configuration from an array of CJS files in "extends"', async (t) => {
+  // Create a git repository, set the current working directory at the root of the repo
+  const { cwd } = await gitRepo();
+  const pkgOptions = { extends: ["./shareable1.cjs", "./shareable2.cjs"] };
+  const options1 = {
+    verifyRelease: "verifyRelease1",
+    analyzeCommits: { path: "analyzeCommits1", param: "analyzeCommits_param1" },
+    branches: ["test_branch"],
+    repositoryUrl: "https://host.null/owner/module.git",
+  };
+  const options2 = {
+    verifyRelease: "verifyRelease2",
+    generateNotes: "generateNotes2",
+    analyzeCommits: { path: "analyzeCommits2", param: "analyzeCommits_param2" },
+    branches: ["test_branch"],
+    tagFormat: `v\${version}`,
+    plugins: false,
+  };
+  // Create package.json and shareable.json in repository root
+  await outputJson(path.resolve(cwd, "package.json"), { release: pkgOptions });
+  await writeFile(path.resolve(cwd, "shareable1.cjs"), `module.exports = ${JSON.stringify(options1)}`);
+  await writeFile(path.resolve(cwd, "shareable2.cjs"), `module.exports = ${JSON.stringify(options2)}`);
+  const expectedOptions = { ...options1, ...options2, branches: ["test_branch"] };
+  // Verify the plugins module is called with the plugin options from shareable1.mjs and shareable2.mjs
+  td.when(
+    plugins(
+      { options: expectedOptions, cwd },
+      {
+        verifyRelease1: "./shareable1.cjs",
+        verifyRelease2: "./shareable2.cjs",
+        generateNotes2: "./shareable2.cjs",
+        analyzeCommits1: "./shareable1.cjs",
+        analyzeCommits2: "./shareable2.cjs",
+      }
+    )
+  ).thenResolve(pluginsConfig);
+
+  const result = await t.context.getConfig({ cwd });
+
+  // Verify the options contains the plugin config from shareable1.json and shareable2.json
+  t.deepEqual(result, { options: expectedOptions, plugins: pluginsConfig });
+});
+
+test.serial('Read configuration from an array of ESM files in "extends"', async (t) => {
+  // Create a git repository, set the current working directory at the root of the repo
+  const { cwd } = await gitRepo();
+  const pkgOptions = { extends: ["./shareable1.mjs", "./shareable2.mjs"] };
+  const options1 = {
+    verifyRelease: "verifyRelease1",
+    analyzeCommits: { path: "analyzeCommits1", param: "analyzeCommits_param1" },
+    branches: ["test_branch"],
+    repositoryUrl: "https://host.null/owner/module.git",
+  };
+  const options2 = {
+    verifyRelease: "verifyRelease2",
+    generateNotes: "generateNotes2",
+    analyzeCommits: { path: "analyzeCommits2", param: "analyzeCommits_param2" },
+    branches: ["test_branch"],
+    tagFormat: `v\${version}`,
+    plugins: false,
+  };
+  // Create package.json and shareable.json in repository root
+  await outputJson(path.resolve(cwd, "package.json"), { release: pkgOptions });
+  await writeFile(path.resolve(cwd, "shareable1.mjs"), `export default ${JSON.stringify(options1)}`);
+  await writeFile(path.resolve(cwd, "shareable2.mjs"), `export default ${JSON.stringify(options2)}`);
+  const expectedOptions = { ...options1, ...options2, branches: ["test_branch"] };
+  // Verify the plugins module is called with the plugin options from shareable1.mjs and shareable2.mjs
+  td.when(
+    plugins(
+      { options: expectedOptions, cwd },
+      {
+        verifyRelease1: "./shareable1.mjs",
+        verifyRelease2: "./shareable2.mjs",
+        generateNotes2: "./shareable2.mjs",
+        analyzeCommits1: "./shareable1.mjs",
+        analyzeCommits2: "./shareable2.mjs",
       }
     )
   ).thenResolve(pluginsConfig);
